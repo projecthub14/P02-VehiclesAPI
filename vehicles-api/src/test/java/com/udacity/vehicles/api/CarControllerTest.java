@@ -29,6 +29,7 @@ import java.util.Collections;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -85,26 +86,25 @@ public class CarControllerTest {
     }
 
     /**
-     * Tests if the read operation appropriately returns a list of vehicles.
-     * @throws Exception if the read operation of the vehicle list fails
+     * Tests the update operation for a car for a given id
+     * @throws Exception if the update operation of the vehicle list fails
      */
     @Test
-    public void listCars() throws Exception {
+    public void updateCar() throws Exception {
         /**
-         * TODO: Add a test to check that the `get` method works by calling
-         *   the whole list of vehicles. This should utilize the car from `getCar()`
+         * TODO: Add a test to check that the `put` method works by calling
+         *   the whole list of vehicles. This should utilize the car from `putCar()`
          *   below (the vehicle will be the first in the list).
          */
-       // mvc.perform(get("/cars/"))
-        mvc.perform( MockMvcRequestBuilders
-                .get("/cars")
-                .accept(MediaType.APPLICATION_JSON))
-                 .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$._embedded.carList[0]").exists())
-                .andExpect(MockMvcResultMatchers.jsonPath("$._embedded.carList[0].condition").value(getCar().getCondition().toString()));
-
-
+        Car car = putCar();
+       // mvc.perform(put("/cars/"))
+        mvc.perform(put("/cars/{id}",1L)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.write(putCar()).getJson())
+                .contentType(MediaType.APPLICATION_JSON_UTF8)
+                .accept(MediaType.APPLICATION_JSON_UTF8))
+                .andDo(print())
+                .andExpect(status().isOk());
 
     }
 
@@ -119,12 +119,36 @@ public class CarControllerTest {
          *   a vehicle by ID. This should utilize the car from `getCar()` below.
          */
         mvc.perform(MockMvcRequestBuilders
-                .get("/cars/{id}", 1)
+                .get("/cars/{id}", 1L)
                 .accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.details").exists())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.details.model").value("Impala"));
+    }
+
+    /**
+     * Tests if the read operation appropriately returns a list of vehicles.
+     * @throws Exception if the read operation of the vehicle list fails
+     */
+    @Test
+    public void listCars() throws Exception {
+        /**
+         * TODO: Add a test to check that the `get` method works by calling
+         *   the whole list of vehicles. This should utilize the car from `getCar()`
+         *   below (the vehicle will be the first in the list).
+         */
+        // mvc.perform(get("/cars/"))
+        mvc.perform( MockMvcRequestBuilders
+                .get("/cars")
+                .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$._embedded.carList[0]").exists())
+                .andExpect(MockMvcResultMatchers.jsonPath("$._embedded.carList[0].condition").value(getCar().getCondition().toString()));
+
+
+
     }
 
     /**
@@ -140,7 +164,7 @@ public class CarControllerTest {
          *
          */
 
-        mvc.perform( MockMvcRequestBuilders.delete("/cars/{id}", 1) )
+        mvc.perform( MockMvcRequestBuilders.delete("/cars/{id}", 1L) )
                 .andExpect(status().is(204));
     }
 
@@ -167,4 +191,25 @@ public class CarControllerTest {
         car.setCondition(Condition.USED);
         return car;
     }
+
+    private Car putCar() {
+        Car car = new Car();
+        car.setLocation(new Location(22.730610, -66.935242));
+        Details details = new Details();
+        Manufacturer manufacturer = new Manufacturer(102, "Ford");
+        details.setManufacturer(manufacturer);
+        details.setModel("FordPlus");
+        details.setMileage(11280);
+        details.setExternalColor("red");
+        details.setBody("sedan");
+        details.setEngine("4.6L V6");
+        details.setFuelType("Gasoline");
+        details.setModelYear(2019);
+        details.setProductionYear(2019);
+        details.setNumberOfDoors(4);
+        car.setDetails(details);
+        car.setCondition(Condition.NEW);
+        return car;
+    }
+
 }
