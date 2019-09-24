@@ -40,7 +40,22 @@ public class CarService {
      * @return a list of all vehicles in the CarRepository
      */
     public List<Car> list() {
-        return repository.findAll();
+        List<Car> car = repository.findAll();
+        for(Car eachCar : car ){
+            eachCar = setPriceLocation(eachCar);
+        }
+        return car;
+    }
+
+    public Car setPriceLocation(Car car) {
+        car.setPrice(this.priceClient.getPrice(car.getId()));
+
+        Location latlonLocation = new Location(car.getLocation().getLat(),car.getLocation().getLon());
+        Location addresslocation = this.mapsClient.getAddress(latlonLocation);
+        car.setLocation(addresslocation);
+
+        return car;
+
     }
 
     /**
@@ -75,7 +90,7 @@ public class CarService {
          */
         //done
 
-        car.setPrice(this.priceClient.getPrice(id));
+
 
 
         /**
@@ -88,9 +103,8 @@ public class CarService {
          */
          //done
 
-         Location latlonLocation = new Location(car.getLocation().getLat(),car.getLocation().getLon());
-         Location addresslocation = this.mapsClient.getAddress(latlonLocation);
-         car.setLocation(addresslocation);
+         car = setPriceLocation(car);
+
 
          car = save(car);
          return car;
@@ -106,7 +120,10 @@ public class CarService {
             return repository.findById(car.getId())
                     .map(carToBeUpdated -> {
                         carToBeUpdated.setDetails(car.getDetails());
-                        carToBeUpdated.setLocation(car.getLocation());
+                        carToBeUpdated.setCondition(car.getCondition());
+
+                        carToBeUpdated = setPriceLocation(carToBeUpdated);
+
                         return repository.save(carToBeUpdated);
                     }).orElseThrow(CarNotFoundException::new);
         }
